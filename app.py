@@ -1,23 +1,24 @@
-import streamlit as st
-import pandas as pd
-import duckdb as db
 import io
 
-csv = """
+import duckdb as db
+import pandas as pd
+import streamlit as st
+
+CSV = """
 beverage, price
 orange juice, 2.5
 Expresso, 2
 Tea, 3
 """
-beverages = pd.read_csv(io.StringIO(csv))
+beverages = pd.read_csv(io.StringIO(CSV))
 
-csv2 = """
+CSV2 = """
 food_item, food_price
 cookie, 2.5
 chocolatine, 2
 muffin, 3
 """
-food_items = pd.read_csv(io.StringIO(csv2))
+food_items = pd.read_csv(io.StringIO(CSV2))
 
 answer = """
 SELECT *
@@ -25,29 +26,35 @@ FROM beverages
 CROSS JOIN food_items
 """
 
-solution = db.sql(answer)
+solution = db.sql(answer).df()
 
 
-
-st.write("""
+st.write(
+    """
 # SQL SRS
 Spaced Repetition System for SQL practice
-""")
+"""
+)
 
 with st.sidebar:
     option = st.selectbox(
         "What would you like to review?",
         ("Joins", "Group By", "Window Functions"),
         index=None,
-        placeholder="Select a theme..."
+        placeholder="Select a theme...",
     )
     st.write(f"You selected: {option}")
 
 sql_query = st.text_area(label="Insert your SQL query here")
 if sql_query:
-    result = db.query(sql_query)
+    result = db.query(sql_query).df()
     st.dataframe(result)
-st.write(f"You entered the following input: {sql_query}")
+
+    try:
+        result = result[solution.columns]
+        st.dataframe(result.compare(solution))
+    except KeyError as e:
+        st.write("Some columns are missing")
 
 tab1, tab2 = st.tabs(["Tables", "Solution"])
 
