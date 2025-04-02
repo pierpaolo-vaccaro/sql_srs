@@ -1,32 +1,18 @@
 import io
 
-import duckdb as db
+import duckdb
 import pandas as pd
 import streamlit as st
 
-CSV = """
-beverage, price
-orange juice, 2.5
-Expresso, 2
-Tea, 3
-"""
-beverages = pd.read_csv(io.StringIO(CSV))
 
-CSV2 = """
-food_item, food_price
-cookie, 2.5
-chocolatine, 2
-muffin, 3
-"""
-food_items = pd.read_csv(io.StringIO(CSV2))
 
-answer = """
-SELECT *
-FROM beverages
-CROSS JOIN food_items
-"""
-
-solution = db.sql(answer).df()
+# answer = """
+# SELECT *
+# FROM beverages
+# CROSS JOIN food_items
+# """
+#
+# solution = duckdb.sql(answer).df()
 
 
 st.write(
@@ -35,6 +21,8 @@ st.write(
 Spaced Repetition System for SQL practice
 """
 )
+
+con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
 
 with st.sidebar:
     option = st.selectbox(
@@ -45,26 +33,30 @@ with st.sidebar:
     )
     st.write(f"You selected: {option}")
 
+    exercise = con.execute(f"SELECT * FROM memory_state WHERE theme = '{theme}'").df()
+    st.write(exercise)
+
 sql_query = st.text_area(label="Insert your SQL query here")
-if sql_query:
-    result = db.query(sql_query).df()
-    st.dataframe(result)
 
-    try:
-        result = result[solution.columns]
-        st.dataframe(result.compare(solution))
-    except KeyError as e:
-        st.write("Some columns are missing")
-
-tab1, tab2 = st.tabs(["Tables", "Solution"])
-
-with tab1:
-    st.write("table: beverages")
-    st.dataframe(beverages)
-    st.write("table: food_items")
-    st.dataframe(food_items)
-    st.write("Expected output")
-    st.dataframe(solution)
-
-with tab2:
-    st.write(answer)
+#  if sql_query:
+#     result = duckdb.query(sql_query).df()
+#     st.dataframe(result)
+#
+#     try:
+#         result = result[solution.columns]
+#         st.dataframe(result.compare(solution))
+#     except KeyError as e:
+#         st.write("Some columns are missing")
+#
+# tab1, tab2 = st.tabs(["Tables", "Solution"])
+#
+# with tab1:
+#     st.write("table: beverages")
+#     st.dataframe(beverages)
+#     st.write("table: food_items")
+#    st.dataframe(food_items)
+#     st.write("Expected output")
+#     st.dataframe(solution)
+#
+# with tab2:
+#     st.write(answer)
